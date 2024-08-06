@@ -72,6 +72,18 @@ variable "private_ipv4" {
   type        = string
 }
 
+variable "assign_public_ipv4_enabled" {
+  description = "Enable automatic creation and assignment of a public IPv4"
+  type        = bool
+  default     = true
+}
+
+variable "assign_public_ipv6_enabled" {
+  description = "Enable automatic creation and assignment of a public IPv6"
+  type        = bool
+  default     = true
+}
+
 variable "server_type" {
   description = "The server type"
   type        = string

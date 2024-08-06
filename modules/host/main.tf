@@ -32,6 +32,10 @@ resource "hcloud_server" "server" {
   keep_disk          = var.keep_disk_size
 
   labels = var.labels
+  public_net {
+    ipv4_enabled = var.assign_public_ipv4_enabled
+    ipv6_enabled = var.assign_public_ipv6_enabled
+  }
 
   # Prevent destroying the whole cluster if the user changes
   # any of the attributes that force to recreate the servers.

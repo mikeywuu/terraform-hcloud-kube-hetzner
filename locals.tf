@@ -148,6 +148,8 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group
+        assign_public_ipv4_enabled : nodepool_obj.assign_public_ipv4_enabled
+        assign_public_ipv6_enabled : nodepool_obj.assign_public_ipv6_enabled
       }
     }
   ]...)
@@ -172,6 +174,8 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group
+        assign_public_ipv4_enabled : nodepool_obj.assign_public_ipv4_enabled
+        assign_public_ipv6_enabled : nodepool_obj.assign_public_ipv6_enabled
       }
     }
   ]...)
@@ -196,6 +200,8 @@ locals {
           selinux : nodepool_obj.selinux,
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
+          assign_public_ipv4_enabled : nodepool_obj.assign_public_ipv4_enabled
+          assign_public_ipv6_enabled : nodepool_obj.assign_public_ipv6_enabled
           index : floor(tonumber(node_key)),
         },
         { for key, value in node_obj : key => value if value != null },

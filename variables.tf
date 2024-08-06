@@ -74,6 +74,7 @@ variable "network_region" {
   type        = string
   default     = "eu-central"
 }
+
 variable "existing_network_id" {
   # Unfortunately, we need this to be a list or null. If we only use a plain
   # string here, and check that existing_network_id is null, terraform will
@@ -89,6 +90,18 @@ variable "existing_network_id" {
     condition     = length(var.existing_network_id) == 0 || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
     error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
   }
+}
+
+variable "assign_public_ipv4_enabled" {
+  description = "Enable automatic creation and assignment of a public IPv4"
+  type        = bool
+  default     = true
+}
+
+variable "assign_public_ipv6_enabled" {
+  description = "Enable automatic creation and assignment of a public IPv6"
+  type        = bool
+  default     = true
 }
 variable "network_ipv4_cidr" {
   description = "The main network cidr that all subnets will be created upon."
@@ -178,6 +191,8 @@ variable "control_plane_nodepools" {
     selinux                    = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
+    assign_public_ipv4_enabled = optional(bool, true)
+    assign_public_ipv6_enabled = optional(bool, true)
   }))
   default = []
   validation {
@@ -210,6 +225,8 @@ variable "agent_nodepools" {
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     count                      = optional(number, null)
+    assign_public_ipv4_enabled = optional(bool, true)
+    assign_public_ipv6_enabled = optional(bool, true)
     nodes = optional(map(object({
       server_type                = optional(string)
       location                   = optional(string)
@@ -225,6 +242,8 @@ variable "agent_nodepools" {
       placement_group_compat_idx = optional(number, 0)
       placement_group            = optional(string, null)
       append_index_to_node_name  = optional(bool, true)
+      assign_public_ipv4_enabled = optional(bool, true)
+      assign_public_ipv6_enabled = optional(bool, true)
     })))
   }))
   default = []
