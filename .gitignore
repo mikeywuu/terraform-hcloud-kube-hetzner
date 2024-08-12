@@ -41,3 +41,11 @@ kustomization.yaml
 *kustomization_backup.yaml
 kube.tf
 .terraform.lock.hcl
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/material_theme_project_new.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/terraform-hcloud-kube-hetzner.iml
+/.idea/vcs.xml

@@ -810,6 +810,7 @@ EOF
 
 cloudinit_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
+# Also works when two interfaces / public + private network are present
 - path: /etc/cloud/rename_interface.sh
   content: |
     #!/bin/bash
@@ -818,6 +819,28 @@ cloudinit_write_files_common = <<EOT
     sleep 11
 
     INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
+    if [ -z "$INTERFACE" ]; then
+      echo "Less than 2 interfaces found"
+      INTERFACE=$(ip link show | awk '/^2:/{print $2}' | sed 's/://g')
+      echo "Interface is $INTERFACE"
+      MAC=$(cat /sys/class/net/$INTERFACE/address)
+      echo "MAC is $MAC"
+      cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth0"
+    EOF
+
+      ip link set $INTERFACE down
+      ip link set $INTERFACE name eth0
+      ip link set eth0 up
+
+      eth0_connection=$(nmcli -g GENERAL.CONNECTION device show eth0)
+      nmcli connection modify "$eth0_connection" \
+        con-name eth0 \
+        connection.interface-name eth0
+      systemctl restart NetworkManager
+      exit 0
+
+    fi
     MAC=$(cat /sys/class/net/$INTERFACE/address)
 
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules

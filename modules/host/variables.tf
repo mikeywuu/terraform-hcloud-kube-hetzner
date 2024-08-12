@@ -61,6 +61,10 @@ variable "location" {
   description = "The server location"
   type        = string
 }
+variable "network_id" {
+  description = "The network id"
+  type        = string
+}
 
 variable "ipv4_subnet_id" {
   description = "The subnet id"

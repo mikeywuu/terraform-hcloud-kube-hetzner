@@ -36,6 +36,16 @@ resource "hcloud_server" "server" {
     ipv4_enabled = var.assign_public_ipv4_enabled
     ipv6_enabled = var.assign_public_ipv6_enabled
   }
+  network {
+    network_id = var.network_id
+    ip         = var.private_ipv4
+  }
+  #   resource "hcloud_server_network" "server" {
+  #     ip        = var.private_ipv4
+  #     server_id = hcloud_server.server.id
+  #     subnet_id = var.ipv4_subnet_id
+  #   }
+
 
   # Prevent destroying the whole cluster if the user changes
   # any of the attributes that force to recreate the servers.
@@ -52,7 +62,7 @@ resource "hcloud_server" "server" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = self.ipv4_address
+    host           = var.assign_public_ipv4_enabled ? self.ipv4_address : var.private_ipv4
     port           = var.ssh_port
   }
 
@@ -67,7 +77,7 @@ resource "hcloud_server" "server" {
   # Wait for MicroOS to reboot and be ready.
   provisioner "local-exec" {
     command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${var.assign_public_ipv4_enabled ? self.ipv4_address : var.private_ipv4} true 2> /dev/null
       do
         echo "Waiting for MicroOS to become available..."
         sleep 3
@@ -107,7 +117,7 @@ resource "null_resource" "registries" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = hcloud_server.server.ipv4_address
+    host           = var.assign_public_ipv4_enabled ? hcloud_server.server.ipv4_address : var.private_ipv4
     port           = var.ssh_port
   }
 
@@ -123,6 +133,7 @@ resource "null_resource" "registries" {
   depends_on = [hcloud_server.server]
 }
 
+# TODO: Make this variable because of new public/private ip separation
 resource "hcloud_rdns" "server" {
   count = var.base_domain != "" ? 1 : 0
 
@@ -131,6 +142,7 @@ resource "hcloud_rdns" "server" {
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
+# TODO: Remove me?
 resource "hcloud_server_network" "server" {
   ip        = var.private_ipv4
   server_id = hcloud_server.server.id
@@ -167,7 +179,7 @@ resource "null_resource" "zram" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = hcloud_server.server.ipv4_address
+    host           = var.assign_public_ipv4_enabled ? hcloud_server.server.ipv4_address : var.private_ipv4
     port           = var.ssh_port
   }
 

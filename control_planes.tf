@@ -20,6 +20,7 @@ module "control_planes" {
   location                     = each.value.location
   server_type                  = each.value.server_type
   backups                      = each.value.backups
+  network_id                   = data.hcloud_network.k3s.id
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
@@ -30,8 +31,8 @@ module "control_planes" {
   zram_size                    = each.value.zram_size
   keep_disk_size               = var.keep_disk_cp
 
-  assign_public_ipv4_enabled   = each.value.assign_public_ipv4_enabled
-  assign_public_ipv6_enabled   = each.value.assign_public_ipv6_enabled
+  assign_public_ipv4_enabled = each.value.assign_public_ipv4_enabled
+  assign_public_ipv6_enabled = each.value.assign_public_ipv6_enabled
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -116,7 +117,8 @@ locals {
       tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
       } : {
       tls-san = concat([
-        module.control_planes[k].ipv4_address
+        module.control_planes[k].ipv4_address,
+        module.control_planes[k].private_ipv4_address
       ], var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
@@ -136,7 +138,7 @@ resource "null_resource" "control_plane_config" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = each.value.assign_public_ipv4_enabled ? module.control_planes[each.key].ipv4_address : module.control_planes[each.key].private_ipv4_address
     port           = var.ssh_port
   }
 
@@ -167,7 +169,7 @@ resource "null_resource" "control_planes" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = each.value.assign_public_ipv4_enabled ? module.control_planes[each.key].ipv4_address : module.control_planes[each.key].private_ipv4_address
     port           = var.ssh_port
   }
 

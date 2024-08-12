@@ -20,6 +20,7 @@ module "agents" {
   location                     = each.value.location
   server_type                  = each.value.server_type
   backups                      = each.value.backups
+  network_id                   = data.hcloud_network.k3s.id
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
@@ -30,8 +31,8 @@ module "agents" {
   zram_size                    = each.value.zram_size
   keep_disk_size               = var.keep_disk_agents
 
-  assign_public_ipv4_enabled   = each.value.assign_public_ipv4_enabled
-  assign_public_ipv6_enabled   = each.value.assign_public_ipv6_enabled
+  assign_public_ipv4_enabled = each.value.assign_public_ipv4_enabled
+  assign_public_ipv6_enabled = each.value.assign_public_ipv6_enabled
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
