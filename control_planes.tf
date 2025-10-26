@@ -120,14 +120,12 @@ locals {
       advertise-address           = module.control_planes[k].private_ipv4_address
       node-label                  = v.labels
       node-taint                  = v.taints
-      # TODO: Fix this, currently it needs to be false
-      # selinux                     = var.disable_selinux ? false : (v.selinux == true ? true : false)
-      selinux               = false
-      cluster-cidr          = var.cluster_ipv4_cidr
-      service-cidr          = var.service_ipv4_cidr
-      cluster-dns           = local.cluster_dns_ipv4
-      write-kubeconfig-mode = "0644" # needed for import into rancher
-      cni                   = "none"
+      selinux                     = var.disable_selinux ? false : (v.selinux == true ? true : false)
+      cluster-cidr                = var.cluster_ipv4_cidr
+      service-cidr                = var.service_ipv4_cidr
+      cluster-dns                 = var.cluster_dns_ipv4
+      write-kubeconfig-mode       = "0644" # needed for import into rancher
+      cni                         = "none"
     },
     var.use_control_plane_lb ? {
       tls-san = concat([
@@ -157,12 +155,11 @@ locals {
         module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
         module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
       module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token                    = local.k3s_token
-      disable-cloud-controller = true
-      disable-kube-proxy       = var.disable_kube_proxy
-      disable                  = local.disable_extras
-      # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_control_plane_kubelet_args
-      kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args)
+      token                       = local.k3s_token
+      disable-cloud-controller    = true
+      disable-kube-proxy          = var.disable_kube_proxy
+      disable                     = local.disable_extras
+      kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
       kube-apiserver-arg          = local.kube_apiserver_arg
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface
@@ -193,8 +190,7 @@ locals {
       var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
-    var.control_planes_custom_config,
-    local.prefer_bundled_bin_config
+    var.control_planes_custom_config
   ) }
 }
 
